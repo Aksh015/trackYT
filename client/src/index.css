@@ -1,0 +1,321 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ─── TrackYT Design System (Tailwind v4 @theme) ────────────── */
+@theme {
+  /* Warm cream/paper palette — inspired by Monitor YT but with a unique amber accent */
+  --color-cream-50: #FFFDF7;
+  --color-cream-100: #FFF8E7;
+  --color-cream-200: #FFEFC2;
+  --color-cream-300: #FFE4A0;
+  --color-cream-400: #FFD56B;
+
+  /* Dark tones */
+  --color-ink-900: #1A1A1A;
+  --color-ink-800: #2D2D2D;
+  --color-ink-700: #3D3D3D;
+  --color-ink-600: #555555;
+  --color-ink-500: #777777;
+  --color-ink-400: #999999;
+  --color-ink-300: #BBBBBB;
+  --color-ink-200: #DDDDDD;
+  --color-ink-100: #F0F0F0;
+
+  /* Accent — vibrant red-orange for CTAs */
+  --color-accent-500: #E63B2E;
+  --color-accent-600: #CC2E22;
+  --color-accent-400: #FF5A4F;
+
+  /* Status colors */
+  --color-emerald-500: #10B981;
+  --color-amber-500: #F59E0B;
+  --color-sky-500: #0EA5E9;
+  --color-violet-500: #8B5CF6;
+  --color-rose-500: #F43F5E;
+
+  /* Border radius */
+  --radius-pill: 9999px;
+  --radius-card: 12px;
+  --radius-lg: 16px;
+  --radius-sm: 6px;
+
+  /* Font family */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 10px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Global Base Styles ─────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-cream-50);
+  color: var(--color-ink-900);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar (subtle) ─────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-300);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-400);
+}
+
+/* ─── Utility Classes ────────────────────────────────────────── */
+
+/* Hand-drawn style dashed border (key design element from Monitor YT) */
+.border-dashed-dark {
+  border: 2px dashed var(--color-ink-800);
+  border-radius: var(--radius-card);
+}
+
+/* Solid dark border for cards */
+.border-card {
+  border: 2px solid var(--color-ink-900);
+  border-radius: var(--radius-card);
+  background: white;
+}
+
+/* Pill badge (for filter tags) */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--color-ink-900);
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: white;
+  color: var(--color-ink-900);
+  user-select: none;
+}
+
+.badge-pill:hover {
+  background: var(--color-cream-100);
+}
+
+.badge-pill.active {
+  background: var(--color-ink-900);
+  color: white;
+}
+
+/* Event type badges */
+.event-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.event-badge-new-video {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.event-badge-title-changed {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.event-badge-thumbnail-changed {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.event-badge-channel-renamed {
+  background: #e0f2fe;
+  color: #0c4a6e;
+}
+
+.event-badge-profile-pic {
+  background: #fce7f3;
+  color: #9d174d;
+}
+
+/* Time badge */
+.time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 1px solid var(--color-ink-200);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  color: var(--color-ink-500);
+  background: white;
+}
+
+/* ─── Button Variants ────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--color-accent-500);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-600);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(230, 59, 46, 0.3);
+}
+
+.btn-outline {
+  background: white;
+  color: var(--color-ink-900);
+  border: 2px solid var(--color-ink-900);
+}
+
+.btn-outline:hover {
+  background: var(--color-ink-900);
+  color: white;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-ink-600);
+  padding: 8px 12px;
+}
+
+.btn-ghost:hover {
+  background: var(--color-cream-100);
+  color: var(--color-ink-900);
+}
+
+/* ─── Form Inputs ────────────────────────────────────────────── */
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--color-ink-200);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease;
+  outline: none;
+  background: white;
+}
+
+.input:focus {
+  border-color: var(--color-ink-900);
+}
+
+.input::placeholder {
+  color: var(--color-ink-400);
+}
+
+/* ─── Card ───────────────────────────────────────────────────── */
+.card {
+  background: white;
+  border: 2px solid var(--color-ink-900);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+/* Staggered animation for lists */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+.stagger-5 { animation-delay: 0.25s; }
+
+/* ─── Loading skeleton ───────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-ink-100) 25%, var(--color-cream-100) 50%, var(--color-ink-100) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
