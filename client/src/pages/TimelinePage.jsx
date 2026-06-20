@@ -3,6 +3,8 @@ import { eventService } from '../services/analyticsService';
 import channelService from '../services/channelService';
 import { formatDate, eventTypeLabel, eventTypeBadgeClass, eventTypeIcon, truncate, timeAgo } from '../utils/formatters';
 
+import EventCard from '../components/EventCard';
+
 export default function TimelinePage() {
   const [events, setEvents] = useState([]);
   const [channels, setChannels] = useState([]);
@@ -57,8 +59,8 @@ export default function TimelinePage() {
             <div key={i}>
               <div className="skeleton h-5 w-32 mb-3" />
               <div className="space-y-2">
-                <div className="skeleton h-12 w-full rounded-lg" />
-                <div className="skeleton h-12 w-full rounded-lg" />
+                <div className="skeleton h-32 w-full rounded-2xl" />
+                <div className="skeleton h-32 w-full rounded-2xl" />
               </div>
             </div>
           ))}
@@ -72,39 +74,25 @@ export default function TimelinePage() {
       ) : (
         <div className="relative">
           {/* Vertical timeline line */}
-          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-ink-200 hidden sm:block" />
+          <div className="absolute left-6 top-0 bottom-0 w-1 bg-ink-900 hidden sm:block" />
 
           {Object.entries(groupedEvents).map(([date, dayEvents], groupIndex) => (
             <div key={date} className="mb-8 animate-fade-in-up" style={{ animationDelay: `${groupIndex * 0.08}s` }}>
               {/* Date header */}
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-ink-900 text-white flex items-center justify-center text-sm font-bold relative z-10 shrink-0">
+                <div className="w-12 h-12 rounded-full bg-ink-900 text-white flex items-center justify-center text-sm font-bold relative z-10 shrink-0 shadow-[4px_4px_0px_0px_#FFE4A0] border-2 border-ink-900">
                   📅
                 </div>
-                <h2 className="text-lg font-bold">{date}</h2>
-                <span className="text-xs text-ink-400 font-medium">
+                <h2 className="text-xl font-black">{date}</h2>
+                <span className="text-xs text-ink-500 font-bold bg-white px-2 py-1 border-2 border-ink-900 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   {dayEvents.length} change{dayEvents.length > 1 ? 's' : ''}
                 </span>
               </div>
 
               {/* Events for this date */}
-              <div className="sm:ml-16 space-y-2">
+              <div className="sm:ml-16 space-y-4">
                 {dayEvents.map((event) => (
-                  <div key={event._id} className="flex items-center gap-3 p-3 rounded-lg bg-white border border-ink-100 hover:border-ink-300 transition-colors">
-                    <span className="text-lg">{eventTypeIcon(event.eventType)}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-sm">{getChannelName(event.channelId)}</span>
-                        <span className={`event-badge ${eventTypeBadgeClass(event.eventType)}`}>
-                          {eventTypeLabel(event.eventType)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-ink-500 mt-0.5">
-                        <TimelineEventText event={event} />
-                      </p>
-                    </div>
-                    <span className="text-xs text-ink-400 shrink-0">{timeAgo(event.detectedAt)}</span>
-                  </div>
+                  <EventCard key={event._id} event={event} channelName={getChannelName(event.channelId)} />
                 ))}
               </div>
             </div>
@@ -116,15 +104,15 @@ export default function TimelinePage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="btn btn-outline text-sm disabled:opacity-30"
+                className="btn btn-outline text-sm disabled:opacity-30 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               >
                 ← Newer
               </button>
-              <span className="text-sm text-ink-500">Page {page} of {pagination.pages}</span>
+              <span className="text-sm font-bold text-ink-900">Page {page} of {pagination.pages}</span>
               <button
                 onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
                 disabled={page >= pagination.pages}
-                className="btn btn-outline text-sm disabled:opacity-30"
+                className="btn btn-outline text-sm disabled:opacity-30 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               >
                 Older →
               </button>
@@ -134,21 +122,4 @@ export default function TimelinePage() {
       )}
     </div>
   );
-}
-
-function TimelineEventText({ event }) {
-  switch (event.eventType) {
-    case 'NEW_VIDEO':
-      return <>Uploaded "{truncate(event.newValue?.title, 50)}"</>;
-    case 'TITLE_CHANGED':
-      return <>Title: "{truncate(event.oldValue?.title, 30)}" → "{truncate(event.newValue?.title, 30)}"</>;
-    case 'THUMBNAIL_CHANGED':
-      return <>Changed a video thumbnail</>;
-    case 'CHANNEL_RENAMED':
-      return <>Renamed: {event.oldValue?.channelName} → {event.newValue?.channelName}</>;
-    case 'PROFILE_PICTURE_CHANGED':
-      return <>Updated profile picture</>;
-    default:
-      return <>{event.eventType}</>;
-  }
 }

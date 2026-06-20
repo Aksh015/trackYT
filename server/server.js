@@ -17,6 +17,9 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy (needed for proper rate limiting behind Render/Vercel)
+app.set('trust proxy', 1);
+
 // ─── Middleware ──────────────────────────────────────────────
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',

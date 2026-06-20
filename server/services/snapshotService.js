@@ -30,6 +30,10 @@ const takeSnapshot = async (channel) => {
       videoDetails[video.videoId] = {
         title: video.title,
         thumbnailURL: video.thumbnailURL,
+        views: video.views || 0,
+        likes: video.likes || 0,
+        comments: video.comments || 0,
+        publishedAt: video.publishedAt ? new Date(video.publishedAt) : null,
       };
     }
 

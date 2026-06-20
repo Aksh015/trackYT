@@ -165,7 +165,7 @@ const getVideoDetails = async (videoIds) => {
   try {
     const response = await axios.get(`${YT_API_BASE}/videos`, {
       params: {
-        part: 'snippet',
+        part: 'snippet,statistics',
         id: videoIds.join(','),
         key: process.env.YOUTUBE_API_KEY,
       },
@@ -178,6 +178,9 @@ const getVideoDetails = async (videoIds) => {
         || video.snippet.thumbnails?.high?.url
         || video.snippet.thumbnails?.default?.url
         || '',
+      views: parseInt(video.statistics?.viewCount || '0', 10),
+      likes: parseInt(video.statistics?.likeCount || '0', 10),
+      comments: parseInt(video.statistics?.commentCount || '0', 10),
       publishedAt: video.snippet.publishedAt,
       channelTitle: video.snippet.channelTitle,
     }));

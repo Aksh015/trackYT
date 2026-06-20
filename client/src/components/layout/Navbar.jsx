@@ -8,8 +8,6 @@ export default function Navbar() {
   const navLinks = [
     { path: '/dashboard', label: 'Feed' },
     { path: '/channels', label: 'Channels' },
-    { path: '/analytics', label: 'Analytics' },
-    { path: '/timeline', label: 'Timeline' },
   ];
 
   const isActive = (path) => location.pathname === path;

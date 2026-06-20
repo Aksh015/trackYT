@@ -13,6 +13,7 @@ import ChannelDetailPage from './pages/ChannelDetailPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import TimelinePage from './pages/TimelinePage';
 import SettingsPage from './pages/SettingsPage';
+import VideoDetailPage from './pages/VideoDetailPage';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -97,6 +98,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Layout><ChannelDetailPage /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/channels/:channelId/videos/:videoId"
+        element={
+          <ProtectedRoute>
+            <Layout><VideoDetailPage /></Layout>
           </ProtectedRoute>
         }
       />

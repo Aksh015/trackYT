@@ -65,6 +65,10 @@ export default function DashboardPage() {
     fetchEvents();
   };
 
+  const getChannelName = (channelId) => {
+    return channels.find((c) => c.channelId === channelId)?.channelName || channelId;
+  };
+
   return (
     <div>
       {/* Page Header */}
@@ -146,11 +150,18 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : events.length === 0 ? (
-            <EmptyFeed hasChannels={channels.length > 0} />
+            <EmptyFeed 
+              hasChannels={channels.length > 0} 
+              onClearFilters={() => {
+                setActiveFilter(null);
+                setActiveChannel(null);
+                setPage(1);
+              }}
+            />
           ) : (
             <div className="space-y-4">
-              {events.map((event, i) => (
-                <EventCard key={event._id} event={event} index={i} channels={channels} />
+              {events.map((event) => (
+                <EventCard key={event._id} event={event} channelName={getChannelName(event.channelId)} />
               ))}
 
               {/* Pagination */}
@@ -183,133 +194,29 @@ export default function DashboardPage() {
   );
 }
 
-function EventCard({ event, index, channels }) {
-  const channel = channels.find((c) => c.channelId === event.channelId);
-  const channelName = channel?.channelName || event.channelId;
+import EventCard from '../components/EventCard';
 
-  return (
-    <div
-      className="card p-5 animate-fade-in-up"
-      style={{ animationDelay: `${index * 0.05}s` }}
-    >
-      <div className="flex items-start gap-4">
-        {/* Thumbnail or visual */}
-        <EventVisual event={event} />
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="font-bold text-sm">{channelName}</span>
-            <span className={`event-badge ${eventTypeBadgeClass(event.eventType)}`}>
-              {eventTypeIcon(event.eventType)} {eventTypeLabel(event.eventType)}
-            </span>
-            <span className="time-badge">
-              🕐 {timeAgo(event.detectedAt)}
-            </span>
-          </div>
-
-          <EventDescription event={event} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EventVisual({ event }) {
-  const thumbnailURL =
-    event.newValue?.thumbnailURL ||
-    event.metadata?.thumbnailURL ||
-    event.oldValue?.thumbnailURL;
-
-  const profilePicURL =
-    event.newValue?.profilePicURL || event.oldValue?.profilePicURL;
-
-  if (event.eventType === 'PROFILE_PICTURE_CHANGED' && profilePicURL) {
+function EmptyFeed({ hasChannels, onClearFilters }) {
+  if (hasChannels) {
     return (
-      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-ink-200 shrink-0">
-        <img src={profilePicURL} alt="Profile" className="w-full h-full object-cover" />
-      </div>
-    );
-  }
-
-  if (thumbnailURL) {
-    return (
-      <div className="w-36 h-20 rounded-lg overflow-hidden border-2 border-ink-200 shrink-0">
-        <img src={thumbnailURL} alt="Thumbnail" className="w-full h-full object-cover" />
+      <div className="bg-[#FCF8EC] border-[4px] border-ink-900 border-dashed rounded-3xl p-16 text-center shadow-[8px_8px_0px_0px_#1A1A1A]">
+        <h3 className="font-bold text-2xl mb-2">No matching events</h3>
+        <p className="text-ink-600 mb-6 font-medium">Nothing in your feed matches the current filters.</p>
+        <button onClick={onClearFilters} className="px-6 py-2 bg-[#FCF8EC] border-[3px] border-ink-900 rounded-full font-bold text-ink-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform">
+          Clear filters
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="w-16 h-16 rounded-lg bg-cream-100 border-2 border-ink-200 flex items-center justify-center text-2xl shrink-0">
-      {eventTypeIcon(event.eventType)}
-    </div>
-  );
-}
-
-function EventDescription({ event }) {
-  switch (event.eventType) {
-    case 'NEW_VIDEO':
-      return (
-        <p className="text-sm text-ink-700">
-          Uploaded: <span className="font-semibold">"{truncate(event.newValue?.title, 70)}"</span>
-        </p>
-      );
-    case 'TITLE_CHANGED':
-      return (
-        <div className="text-sm space-y-0.5">
-          <p className="text-ink-400">
-            was: <span className="line-through">{truncate(event.oldValue?.title, 60)}</span>
-          </p>
-          <p className="text-ink-800">
-            now: <span className="font-semibold">{truncate(event.newValue?.title, 60)}</span>
-          </p>
-        </div>
-      );
-    case 'THUMBNAIL_CHANGED':
-      return (
-        <p className="text-sm text-ink-700">
-          Changed the thumbnail for a video
-          {event.metadata?.title && (
-            <span> — <span className="font-medium">"{truncate(event.metadata.title, 40)}"</span></span>
-          )}
-        </p>
-      );
-    case 'CHANNEL_RENAMED':
-      return (
-        <div className="text-sm space-y-0.5">
-          <p className="text-ink-400">
-            was: <span className="line-through">{event.oldValue?.channelName}</span>
-          </p>
-          <p className="text-ink-800">
-            now: <span className="font-semibold">{event.newValue?.channelName}</span>
-          </p>
-        </div>
-      );
-    case 'PROFILE_PICTURE_CHANGED':
-      return (
-        <p className="text-sm text-ink-700">Changed their profile picture</p>
-      );
-    default:
-      return <p className="text-sm text-ink-500">{event.eventType}</p>;
-  }
-}
-
-function EmptyFeed({ hasChannels }) {
-  return (
-    <div className="border-dashed-dark p-12 text-center">
-      <div className="text-4xl mb-3">
-        {hasChannels ? '🔍' : '👻'}
-      </div>
-      <h3 className="font-bold text-lg mb-2">
-        {hasChannels ? 'Nothing yet' : 'Nothing yet 👻'}
-      </h3>
-      <p className="text-ink-500 text-sm mb-5">
-        {hasChannels
-          ? 'No changes detected yet. We check every hour — check back soon!'
-          : "Add a channel and we'll surface changes as they happen."}
+    <div className="bg-[#FCF8EC] border-[4px] border-ink-900 border-dashed rounded-3xl p-16 text-center shadow-[8px_8px_0px_0px_#1A1A1A]">
+      <div className="text-5xl mb-4">👻</div>
+      <h3 className="font-black text-2xl mb-2">Nothing yet</h3>
+      <p className="text-ink-600 font-medium mb-6">
+        Add a channel and we'll surface changes as they happen.
       </p>
-      <Link to="/channels/add" className="btn btn-primary no-underline">
+      <Link to="/channels/add" className="inline-block px-6 py-2 bg-[#FF5A4F] border-[3px] border-ink-900 rounded-full font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform no-underline">
         + Add a channel
       </Link>
     </div>

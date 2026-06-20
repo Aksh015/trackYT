@@ -31,12 +31,16 @@ const snapshotSchema = new mongoose.Schema(
       thumbnailURL: { type: String, default: '' },
       publishedAt: { type: Date, default: null },
     },
-    // Map of videoId -> { title, thumbnailURL } for tracking changes
+    // Map of videoId -> { title, thumbnailURL, views, likes, comments } for tracking changes
     videoDetails: {
       type: Map,
       of: {
         title: String,
         thumbnailURL: String,
+        views: { type: Number, default: 0 },
+        likes: { type: Number, default: 0 },
+        comments: { type: Number, default: 0 },
+        publishedAt: { type: Date, default: null },
       },
       default: {},
     },
