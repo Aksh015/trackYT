@@ -102,8 +102,9 @@ const diffSnapshots = (previous, current) => {
         videoId,
         title: details.title || '',
         thumbnailURL: details.thumbnailURL || '',
+        publishedAt: details.publishedAt || null,
       },
-      metadata: { videoId },
+      metadata: { videoId, publishedAt: details.publishedAt || null },
     });
   }
 

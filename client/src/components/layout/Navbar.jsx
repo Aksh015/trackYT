@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import TrackYTLogo from '../TrackYTLogo';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -17,13 +18,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to={isAuthenticated ? '/dashboard' : '/'} className="flex items-center gap-2 no-underline">
-            <div className="flex items-center gap-1">
-              <span className="text-2xl">📡</span>
-              <span className="text-xl font-extrabold tracking-tight text-ink-900">
-                Track<span className="text-accent-500">YT</span>
-              </span>
-            </div>
+          <Link to={isAuthenticated ? '/dashboard' : '/'} className="flex items-center gap-1.5 no-underline">
+            <TrackYTLogo size={32} variant="navbar" />
+            <span className="text-xl font-extrabold tracking-tight text-ink-900">
+              Track<span className="text-accent-500">YT</span>
+            </span>
           </Link>
 
           {/* Nav Links */}

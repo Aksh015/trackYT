@@ -34,8 +34,8 @@ export default function EventCard({ event, channelName }) {
 
         return (
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            {newValue?.thumbnailURL && (
-              <img src={newValue.thumbnailURL} alt="Thumbnail" className="w-48 rounded-xl border-2 border-ink-900 object-cover" />
+            {(newValue?.archivedThumbnailURL || newValue?.thumbnailURL) && (
+              <img src={newValue.archivedThumbnailURL || newValue.thumbnailURL} alt="Thumbnail" className="w-48 rounded-xl border-2 border-ink-900 object-cover" />
             )}
             <div className="flex flex-col justify-start">
               {renderTitleLink(newValue?.title, "font-bold text-xl mb-3")}
@@ -82,11 +82,11 @@ export default function EventCard({ event, channelName }) {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <span className="text-sm font-bold text-ink-500 mb-1 block">was:</span>
-                <img src={oldValue?.thumbnailURL} alt="Old" className="w-full rounded-xl border-2 border-ink-900 object-cover" />
+                <img src={oldValue?.archivedThumbnailURL || oldValue?.thumbnailURL} alt="Old" className="w-full rounded-xl border-2 border-ink-900 object-cover" />
               </div>
               <div className="flex-1">
                 <span className="text-sm font-bold block mb-1">now:</span>
-                <img src={newValue?.thumbnailURL} alt="New" className="w-full rounded-xl border-2 border-ink-900 object-cover" />
+                <img src={newValue?.archivedThumbnailURL || newValue?.thumbnailURL} alt="New" className="w-full rounded-xl border-2 border-ink-900 object-cover" />
               </div>
             </div>
           </div>

@@ -75,27 +75,38 @@ const addChannel = async (req, res, next) => {
       await snapshotService.takeSnapshot(channel);
       logger.info(`Initial snapshot taken for ${channel.channelName}`);
 
-      // Backfill recent videos (up to 5 max to prevent AI rate limits)
+      // Backfill recent videos from the last 2 days (up to 5 max)
       const apiVideos = (await youtubeService.getRecentVideosAPI(channel.channelId, 2)).slice(0, 5);
+      
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-      if (apiVideos.length > 0) {
-        const eventsToCreate = apiVideos.map((v) => ({
-          userId: req.user._id,
-          channelId: channel.channelId,
-          eventType: EVENT_TYPES.NEW_VIDEO,
-          oldValue: null,
-          newValue: {
-            videoId: v.videoId,
-            title: v.title,
-            thumbnailURL: v.thumbnailURL,
-          },
-          metadata: { videoId: v.videoId },
-          // Set detectedAt to the video's actual publish time so it looks correct in the timeline
-          detectedAt: new Date(v.publishedAt),
-        }));
+      const recentVideos = apiVideos.filter(v => new Date(v.publishedAt) >= twoDaysAgo);
 
-        await Event.insertMany(eventsToCreate);
-        logger.info(`Backfilled ${eventsToCreate.length} NEW_VIDEO events for ${channel.channelName}`);
+      if (recentVideos.length > 0) {
+        // Use eventService.createEvent instead of Event.insertMany
+        // so that the Cloudinary thumbnail upload logic gets triggered!
+        const eventService = require('../services/eventService');
+        
+        for (const v of recentVideos) {
+          await eventService.createEvent({
+            userId: req.user._id,
+            channelId: channel.channelId,
+            eventType: EVENT_TYPES.NEW_VIDEO,
+            oldValue: null,
+            newValue: {
+              videoId: v.videoId,
+              title: v.title,
+              thumbnailURL: v.thumbnailURL,
+              publishedAt: v.publishedAt,
+            },
+            metadata: { 
+              videoId: v.videoId,
+              publishedAt: v.publishedAt
+            }
+          });
+        }
+        logger.info(`Backfilled ${recentVideos.length} NEW_VIDEO events for ${channel.channelName} to Cloudinary`);
       }
 
     } catch (snapError) {

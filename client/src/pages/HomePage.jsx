@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import TrackYTLogo from '../components/TrackYTLogo';
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -9,8 +10,13 @@ export default function HomePage() {
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-4 pt-20 pb-16">
         <div className="text-center animate-fade-in-up">
+          {/* Hero Eye Logo */}
+          <div className="flex justify-center mb-8">
+            <TrackYTLogo size={120} variant="hero" />
+          </div>
+
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border-2 border-ink-900 bg-white text-sm font-semibold mb-8">
-            <span>📡</span>
+            <span>👁️</span>
             <span>100% Free • No Paid APIs</span>
           </div>
 

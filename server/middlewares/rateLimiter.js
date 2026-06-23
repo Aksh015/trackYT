@@ -24,4 +24,16 @@ const authLimiter = rateLimit({
   },
 });
 
-module.exports = { apiLimiter, authLimiter };
+// Strict limiter for manual refresh — 1 per 2 minutes per IP (protects YouTube API quota)
+const refreshLimiter = rateLimit({
+  windowMs: 2 * 60 * 1000,
+  max: 1,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'rate_limited',
+  },
+});
+
+module.exports = { apiLimiter, authLimiter, refreshLimiter };
