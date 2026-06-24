@@ -14,14 +14,14 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 bg-cream-50/90 backdrop-blur-sm border-b-2 border-ink-900">
+    <nav className="sticky top-0 z-50 bg-bg-base/90 backdrop-blur-sm border-b-2 border-ink-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to={isAuthenticated ? '/dashboard' : '/'} className="flex items-center gap-1.5 no-underline">
             <TrackYTLogo size={32} variant="navbar" />
             <span className="text-xl font-extrabold tracking-tight text-ink-900">
-              Track<span className="text-accent-500">YT</span>
+              Track<span className="text-primary">YT</span>
             </span>
           </Link>
 
@@ -35,7 +35,7 @@ export default function Navbar() {
                   className={`px-4 py-1.5 rounded-full text-sm font-semibold no-underline transition-all duration-200 ${
                     isActive(link.path)
                       ? 'bg-ink-900 text-white'
-                      : 'text-ink-600 hover:text-ink-900 hover:bg-cream-100'
+                      : 'text-ink-600 hover:text-ink-900 hover:bg-white'
                   }`}
                 >
                   {link.label}
@@ -87,7 +87,7 @@ export default function Navbar() {
               className={`px-3 py-1 rounded-full text-xs font-semibold no-underline whitespace-nowrap transition-all ${
                 isActive(link.path)
                   ? 'bg-ink-900 text-white'
-                  : 'text-ink-600 hover:bg-cream-100'
+                  : 'text-ink-600 hover:bg-white'
               }`}
             >
               {link.label}

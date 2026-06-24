@@ -17,12 +17,47 @@ const createEvent = async ({ channelId, userId, eventType, oldValue, newValue, m
     }
 
     // Attempt to permanently archive thumbnails to Cloudinary
-    if ((eventType === 'NEW_VIDEO' || eventType === 'THUMBNAIL_CHANGED') && newValue?.thumbnailURL) {
+    if (eventType === 'NEW_VIDEO' && newValue?.thumbnailURL) {
       const videoId = metadata?.videoId || newValue?.videoId;
       const archivedUrl = await cloudinaryService.uploadThumbnail(newValue.thumbnailURL, videoId);
       if (archivedUrl) {
-        // Clone newValue so we don't mutate the original reference unpredictably
         newValue = { ...newValue, archivedThumbnailURL: archivedUrl };
+      }
+    }
+
+    // For thumbnail changes, archive both old and new thumbnails.
+    // IMPORTANT: By the time we detect the change, YouTube's CDN already serves
+    // the NEW image at the old URL. So we can't re-download the old thumbnail.
+    // Instead, we grab the previously archived Cloudinary URL from the NEW_VIDEO event.
+    if (eventType === 'THUMBNAIL_CHANGED') {
+      const videoId = metadata?.videoId;
+      const timestamp = Date.now();
+
+      // Look up the previously archived old thumbnail from Cloudinary
+      if (videoId) {
+        const previousEvent = await Event.findOne({
+          'metadata.videoId': videoId,
+          eventType: { $in: ['NEW_VIDEO', 'THUMBNAIL_CHANGED'] },
+        }).sort({ detectedAt: -1 }).lean();
+
+        const previouslyArchivedUrl =
+          previousEvent?.newValue?.archivedThumbnailURL ||
+          previousEvent?.newValue?.thumbnailURL;
+
+        if (previouslyArchivedUrl) {
+          oldValue = { ...oldValue, archivedThumbnailURL: previouslyArchivedUrl };
+        }
+      }
+
+      // Upload the NEW thumbnail to Cloudinary with a unique ID
+      if (newValue?.thumbnailURL) {
+        const newArchivedUrl = await cloudinaryService.uploadThumbnail(
+          newValue.thumbnailURL,
+          `${videoId}_${timestamp}`
+        );
+        if (newArchivedUrl) {
+          newValue = { ...newValue, archivedThumbnailURL: newArchivedUrl };
+        }
       }
     }
 

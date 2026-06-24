@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Eye, Zap, Video, PenTool, Bot, Image as ImageIcon, Tag, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import TrackYTLogo from '../components/TrackYTLogo';
 
@@ -6,7 +7,7 @@ export default function HomePage() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen bg-cream-50">
+    <div className="min-h-screen bg-bg-base">
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-4 pt-20 pb-16">
         <div className="text-center animate-fade-in-up">
@@ -16,13 +17,13 @@ export default function HomePage() {
           </div>
 
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border-2 border-ink-900 bg-white text-sm font-semibold mb-8">
-            <span>👁️</span>
+            <Eye className="w-4 h-4 text-primary" strokeWidth={3} />
             <span>100% Free • No Paid APIs</span>
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-ink-900 mb-6 leading-tight">
             Track every move<br />
-            on <span className="text-accent-500">YouTube</span>
+            on <span className="text-primary">YouTube</span>
           </h1>
 
           <p className="text-lg sm:text-xl text-ink-500 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -35,7 +36,8 @@ export default function HomePage() {
               to={isAuthenticated ? '/dashboard' : '/signup'}
               className="btn btn-primary text-base px-8 py-3 no-underline"
             >
-              ⚡ Start Tracking Free
+              <Zap className="w-5 h-5" strokeWidth={3} />
+              Start Tracking Free
             </Link>
             <Link
               to={isAuthenticated ? '/dashboard' : '/login'}
@@ -65,11 +67,14 @@ export default function HomePage() {
         <div className="mt-20 text-center">
           <h2 className="text-3xl font-bold mb-8">Everything we detect</h2>
           <div className="flex flex-wrap justify-center gap-3">
-            {eventTypes.map((et) => (
-              <span key={et.label} className={`event-badge ${et.cls} text-sm px-4 py-2`}>
-                {et.icon} {et.label}
-              </span>
-            ))}
+            {eventTypes.map((et, idx) => {
+              const Icon = et.icon;
+              return (
+                <span key={et.label} className={`event-badge ${et.cls} text-sm px-4 py-2 border-2 border-ink-900 shadow-[2px_2px_0px_0px_#111]`}>
+                  <Icon className="w-4 h-4 mr-1" strokeWidth={3} /> {et.label}
+                </span>
+              );
+            })}
           </div>
         </div>
 
@@ -90,14 +95,15 @@ export default function HomePage() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-20 border-dashed-dark p-10 text-center bg-white">
+        <div className="mt-20 border-card shadow-[8px_8px_0px_0px_#111] p-10 text-center bg-white">
           <h2 className="text-2xl font-bold mb-3">Ready to start monitoring?</h2>
-          <p className="text-ink-500 mb-6">No credit card. No paid APIs. Free forever.</p>
+          <p className="text-ink-500 mb-6 font-medium">No credit card. No paid APIs. Free forever.</p>
           <Link
             to={isAuthenticated ? '/dashboard' : '/signup'}
             className="btn btn-primary text-base px-8 py-3 no-underline"
           >
-            🚀 Get Started
+            <Zap className="w-5 h-5" strokeWidth={3} />
+            Get Started
           </Link>
         </div>
       </div>
@@ -107,28 +113,28 @@ export default function HomePage() {
 
 const features = [
   {
-    icon: '🎬',
+    icon: <Video className="w-8 h-8 text-primary" strokeWidth={2} />,
     title: 'New Video Alerts',
     desc: 'Instantly know when a channel uploads. Never miss a new video from your watchlist.',
   },
   {
-    icon: '✏️',
+    icon: <PenTool className="w-8 h-8 text-secondary" strokeWidth={2} />,
     title: 'Title & Thumbnail Tracking',
     desc: 'Catch A/B tests in real-time. See exactly when titles or thumbnails change.',
   },
   {
-    icon: '🤖',
+    icon: <Bot className="w-8 h-8 text-tertiary" strokeWidth={2} />,
     title: 'AI Activity Summaries',
     desc: 'Get smart summaries powered by Google Gemini. Understand upload patterns at a glance.',
   },
 ];
 
 const eventTypes = [
-  { label: 'New videos', icon: '🎬', cls: 'event-badge-new-video' },
-  { label: 'Title changes', icon: '✏️', cls: 'event-badge-title-changed' },
-  { label: 'Thumbnail changes', icon: '🖼️', cls: 'event-badge-thumbnail-changed' },
-  { label: 'Channel renames', icon: '📛', cls: 'event-badge-channel-renamed' },
-  { label: 'Avatar changes', icon: '👤', cls: 'event-badge-profile-pic' },
+  { label: 'New videos', icon: Video, cls: 'event-badge-new-video' },
+  { label: 'Title changes', icon: PenTool, cls: 'event-badge-title-changed' },
+  { label: 'Thumbnail changes', icon: ImageIcon, cls: 'event-badge-thumbnail-changed' },
+  { label: 'Channel renames', icon: Tag, cls: 'event-badge-channel-renamed' },
+  { label: 'Avatar changes', icon: User, cls: 'event-badge-profile-pic' },
 ];
 
 const steps = [

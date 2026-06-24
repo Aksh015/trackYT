@@ -3,28 +3,28 @@
 
 /* ─── TrackYT Design System (Tailwind v4 @theme) ────────────── */
 @theme {
-  /* Warm cream/paper palette — inspired by Monitor YT but with a unique amber accent */
-  --color-cream-50: #FFFDF7;
-  --color-cream-100: #FFF8E7;
-  --color-cream-200: #FFEFC2;
-  --color-cream-300: #FFE4A0;
-  --color-cream-400: #FFD56B;
-
-  /* Dark tones */
-  --color-ink-900: #1A1A1A;
-  --color-ink-800: #2D2D2D;
-  --color-ink-700: #3D3D3D;
+  /* Neo-Brutalist Professional Palette */
+  --color-bg-base: #F4F4F0;
+  
+  /* Core Brand Colors */
+  --color-primary: #FF5A00;   /* Neon Orange */
+  --color-primary-hover: #E04F00;
+  
+  --color-secondary: #FDE24F; /* Sunny Yellow */
+  --color-secondary-hover: #E6C832;
+  
+  --color-tertiary: #00E5FF;  /* Electric Cyan */
+  
+  /* Ink (Strict Dark for brutalist borders) */
+  --color-ink-900: #111111;
+  --color-ink-800: #222222;
+  --color-ink-700: #333333;
   --color-ink-600: #555555;
   --color-ink-500: #777777;
   --color-ink-400: #999999;
   --color-ink-300: #BBBBBB;
   --color-ink-200: #DDDDDD;
-  --color-ink-100: #F0F0F0;
-
-  /* Accent — vibrant red-orange for CTAs */
-  --color-accent-500: #E63B2E;
-  --color-accent-600: #CC2E22;
-  --color-accent-400: #FF5A4F;
+  --color-ink-100: #EEEEEE;
 
   /* Status colors */
   --color-emerald-500: #10B981;
@@ -56,7 +56,7 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-cream-50);
+  background-color: var(--color-bg-base);
   color: var(--color-ink-900);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -114,7 +114,9 @@ body {
 }
 
 .badge-pill:hover {
-  background: var(--color-cream-100);
+  background: var(--color-bg-base);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .badge-pill.active {
@@ -136,18 +138,18 @@ body {
 }
 
 .event-badge-new-video {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-primary);
+  color: white;
 }
 
 .event-badge-title-changed {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-secondary);
+  color: var(--color-ink-900);
 }
 
 .event-badge-thumbnail-changed {
-  background: #ede9fe;
-  color: #5b21b6;
+  background: var(--color-tertiary);
+  color: white;
 }
 
 .event-badge-channel-renamed {
@@ -190,14 +192,14 @@ body {
 }
 
 .btn-primary {
-  background: var(--color-accent-500);
+  background: var(--color-primary);
   color: white;
 }
 
 .btn-primary:hover {
-  background: var(--color-accent-600);
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(230, 59, 46, 0.3);
+  box-shadow: 4px 4px 0px 0px var(--color-ink-900);
 }
 
 .btn-outline {
@@ -218,7 +220,7 @@ body {
 }
 
 .btn-ghost:hover {
-  background: var(--color-cream-100);
+  background: var(--color-ink-100);
   color: var(--color-ink-900);
 }
 

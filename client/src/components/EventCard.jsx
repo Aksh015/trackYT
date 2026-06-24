@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Eye, ThumbsUp, MessageCircle, Clock } from 'lucide-react';
 import { timeAgo } from '../utils/formatters';
 
 export default function EventCard({ event, channelName }) {
@@ -43,18 +44,18 @@ export default function EventCard({ event, channelName }) {
               {/* Stat Pills */}
               {(views !== undefined || likes !== undefined) && (
                 <div className="flex flex-wrap gap-3 mt-auto">
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#A3E6D7] border-2 border-ink-900 rounded-full shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-sm font-bold">
-                    <span>👁</span> 
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-primary text-white border-2 border-ink-900 rounded-full shadow-[3px_3px_0px_0px_#111] text-sm font-bold">
+                    <Eye className="w-4 h-4" strokeWidth={3} /> 
                     <span>{views >= 1000 ? (views/1000).toFixed(1) + 'K' : views}</span>
                     <span className="font-medium text-xs">views</span>
                   </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#FDEBB2] border-2 border-ink-900 rounded-full shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-sm font-bold">
-                    <span>👍</span> 
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-secondary text-ink-900 border-2 border-ink-900 rounded-full shadow-[3px_3px_0px_0px_#111] text-sm font-bold">
+                    <ThumbsUp className="w-4 h-4" strokeWidth={3} /> 
                     <span>{likes >= 1000 ? (likes/1000).toFixed(1) + 'K' : likes}</span>
                     <span className="font-medium text-xs">likes</span>
                   </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#C4D2FE] border-2 border-ink-900 rounded-full shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-sm font-bold">
-                    <span>💬</span> 
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-tertiary text-white border-2 border-ink-900 rounded-full shadow-[3px_3px_0px_0px_#111] text-sm font-bold">
+                    <MessageCircle className="w-4 h-4" strokeWidth={3} /> 
                     <span>{comments >= 1000 ? (comments/1000).toFixed(1) + 'K' : comments}</span>
                     <span className="font-medium text-xs">comments</span>
                   </div>
@@ -78,15 +79,26 @@ export default function EventCard({ event, channelName }) {
       case 'THUMBNAIL_CHANGED':
         return (
           <div className="mt-4">
-            {renderTitleLink(metadata?.title, "font-bold text-xl mb-3")}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <span className="text-sm font-bold text-ink-500 mb-1 block">was:</span>
-                <img src={oldValue?.archivedThumbnailURL || oldValue?.thumbnailURL} alt="Old" className="w-full rounded-xl border-2 border-ink-900 object-cover" />
+            <p className="text-base text-ink-700 mb-3">
+              Thumbnail swapped on {renderTitleLink(`"${metadata?.title}"`, "font-bold text-base inline")}
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center">
+                <img
+                  src={oldValue?.archivedThumbnailURL || oldValue?.thumbnailURL}
+                  alt="Old thumbnail"
+                  className="w-44 h-auto rounded-xl border-2 border-ink-900 object-cover"
+                />
+                <span className="text-xs font-bold text-ink-500 mt-1.5 uppercase tracking-wider">Was</span>
               </div>
-              <div className="flex-1">
-                <span className="text-sm font-bold block mb-1">now:</span>
-                <img src={newValue?.archivedThumbnailURL || newValue?.thumbnailURL} alt="New" className="w-full rounded-xl border-2 border-ink-900 object-cover" />
+              <span className="text-2xl text-ink-400 font-bold select-none">→</span>
+              <div className="flex flex-col items-center">
+                <img
+                  src={newValue?.archivedThumbnailURL || newValue?.thumbnailURL}
+                  alt="New thumbnail"
+                  className="w-44 h-auto rounded-xl border-2 border-ink-900 object-cover"
+                />
+                <span className="text-xs font-bold text-ink-900 mt-1.5 uppercase tracking-wider">Now</span>
               </div>
             </div>
           </div>
@@ -109,8 +121,8 @@ export default function EventCard({ event, channelName }) {
         <h3 className="font-bold text-xl text-ink-900">
           {channelName} <span className="font-medium">{actionText}</span>
         </h3>
-        <span className="flex items-center gap-1.5 px-3 py-1 bg-[#FDEBB2] border-2 border-ink-900 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-xs font-bold text-ink-900">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span className="flex items-center gap-1.5 px-3 py-1 bg-secondary border-2 border-ink-900 rounded-full shadow-[2px_2px_0px_0px_#111] text-xs font-bold text-ink-900">
+          <Clock className="w-3.5 h-3.5" strokeWidth={2.5} />
           {timeAgo(detectedAt)}
         </span>
       </div>

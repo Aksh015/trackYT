@@ -37,6 +37,7 @@ const snapshotSchema = new mongoose.Schema(
       of: {
         title: String,
         thumbnailURL: String,
+        thumbnailHash: { type: String, default: '' },
         views: { type: Number, default: 0 },
         likes: { type: Number, default: 0 },
         comments: { type: Number, default: 0 },

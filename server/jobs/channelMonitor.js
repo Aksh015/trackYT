@@ -1,4 +1,5 @@
 const Channel = require('../models/Channel');
+const Event = require('../models/Event');
 const snapshotService = require('../services/snapshotService');
 const eventService = require('../services/eventService');
 const logger = require('../utils/logger');
@@ -96,6 +97,26 @@ const monitorSingleChannel = async (channel) => {
         newValue: change.newValue,
         metadata: change.metadata,
       });
+    }
+
+    // Keep NEW_VIDEO events up-to-date when title or thumbnail changes
+    const videoId = change.metadata?.videoId;
+    if (videoId && change.eventType === 'TITLE_CHANGED') {
+      await Event.updateMany(
+        { channelId: channel.channelId, eventType: 'NEW_VIDEO', 'metadata.videoId': videoId },
+        { $set: { 'newValue.title': change.newValue.title } }
+      );
+      logger.info(`Updated NEW_VIDEO events for video ${videoId} with new title: "${change.newValue.title}"`);
+    }
+    if (videoId && change.eventType === 'THUMBNAIL_CHANGED') {
+      const newThumbUrl = change.newValue?.archivedThumbnailURL || change.newValue?.thumbnailURL;
+      if (newThumbUrl) {
+        await Event.updateMany(
+          { channelId: channel.channelId, eventType: 'NEW_VIDEO', 'metadata.videoId': videoId },
+          { $set: { 'newValue.thumbnailURL': newThumbUrl, 'newValue.archivedThumbnailURL': newThumbUrl } }
+        );
+        logger.info(`Updated NEW_VIDEO events for video ${videoId} with new thumbnail`);
+      }
     }
   }
 };

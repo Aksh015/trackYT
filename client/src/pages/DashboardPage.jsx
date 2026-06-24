@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { RefreshCw, CheckCircle, AlertTriangle, AlertCircle, Activity, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { eventService } from '../services/analyticsService';
 import channelService from '../services/channelService';
@@ -90,7 +91,7 @@ export default function DashboardPage() {
       {/* Page Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <p className="text-accent-500 font-semibold text-sm mb-1">your watchlist 👀</p>
+          <p className="text-primary font-bold text-xs uppercase tracking-widest mb-1">Tracked Channels</p>
           <h1 className="text-3xl font-black">Feed</h1>
           <p className="text-ink-500 text-sm mt-1">
             New videos, title rewrites, thumbnail swaps, and channel rebrands across the channels you watch.
@@ -99,15 +100,18 @@ export default function DashboardPage() {
         <button
           onClick={handleRefresh}
           disabled={scanning}
-          className={`btn btn-outline text-sm ${scanning ? 'opacity-70 cursor-wait' : ''}`}
+          className={`btn btn-outline text-sm bg-white hover:bg-primary hover:text-white hover:border-primary ${scanning ? 'opacity-70 cursor-wait' : ''}`}
         >
           {scanning ? (
             <>
-              <span className="inline-block w-4 h-4 border-2 border-ink-300 border-t-ink-900 rounded-full animate-spin" />
+              <RefreshCw className="w-4 h-4 animate-spin" strokeWidth={3} />
               Scanning...
             </>
           ) : (
-            '↻ Refresh feed'
+            <>
+              <RefreshCw className="w-4 h-4" strokeWidth={3} />
+              Refresh feed
+            </>
           )}
         </button>
       </div>
@@ -116,47 +120,41 @@ export default function DashboardPage() {
       {scanStatus && (
         <div className="mb-5 animate-fade-in-up">
           {scanStatus === 'scanning' ? (
-            <div className="relative overflow-hidden bg-white border-3 border-ink-900 rounded-2xl px-5 py-3.5 shadow-[4px_4px_0px_0px_#1A1A1A]">
-              <div className="absolute inset-0 bg-gradient-to-r from-cream-200/40 via-transparent to-cream-200/40" style={{ animation: 'skeleton-shimmer 2s ease infinite' }} />
+            <div className="relative overflow-hidden bg-white border-4 border-ink-900 rounded-2xl px-5 py-3.5 shadow-[4px_4px_0px_0px_#111]">
+              <div className="absolute inset-0 bg-gradient-to-r from-bg-base/40 via-transparent to-bg-base/40" style={{ animation: 'skeleton-shimmer 2s ease infinite' }} />
               <div className="relative flex items-center gap-3">
-                <span className="inline-block w-4 h-4 border-2 border-ink-200 border-t-accent-500 rounded-full animate-spin shrink-0" />
-                <span className="text-sm font-semibold text-ink-700">Checking all channels for updates</span>
+                <RefreshCw className="w-5 h-5 text-primary animate-spin" strokeWidth={3} />
+                <span className="text-sm font-bold text-ink-900 uppercase tracking-wide">Scan in progress...</span>
               </div>
             </div>
           ) : scanStatus === 'success' ? (
-            <div className="bg-white border-3 border-ink-900 rounded-2xl px-5 py-3.5 shadow-[4px_4px_0px_0px_#1A1A1A] flex items-center justify-between">
+            <div className="bg-secondary border-4 border-ink-900 rounded-2xl px-5 py-3.5 shadow-[4px_4px_0px_0px_#111] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                </div>
-                <span className="text-sm font-semibold text-ink-800">Feed updated — you're all caught up</span>
+                <CheckCircle className="w-6 h-6 text-ink-900" strokeWidth={3} />
+                <span className="text-sm font-bold text-ink-900 uppercase tracking-wide">Scan complete</span>
               </div>
-              <button onClick={() => setScanStatus(null)} className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-ink-100 text-ink-400 hover:text-ink-900 transition-colors bg-transparent border-none cursor-pointer">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <button onClick={() => setScanStatus(null)} className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-white text-ink-900 transition-colors bg-transparent border-2 border-transparent hover:border-ink-900 cursor-pointer font-bold">
+                ×
               </button>
             </div>
           ) : scanStatus === 'rate_limited' ? (
-            <div className="bg-white border-3 border-ink-900 rounded-2xl px-5 py-3.5 shadow-[4px_4px_0px_0px_#1A1A1A] flex items-center justify-between">
+            <div className="bg-tertiary border-4 border-ink-900 rounded-2xl px-5 py-3.5 shadow-[4px_4px_0px_0px_#111] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center shrink-0">
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" /></svg>
-                </div>
-                <span className="text-sm font-semibold text-ink-800">Too many requests — try again in a couple minutes</span>
+                <AlertTriangle className="w-6 h-6 text-white" strokeWidth={3} />
+                <span className="text-sm font-bold text-white uppercase tracking-wide">Rate limited. Please wait.</span>
               </div>
-              <button onClick={() => setScanStatus(null)} className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-ink-100 text-ink-400 hover:text-ink-900 transition-colors bg-transparent border-none cursor-pointer">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <button onClick={() => setScanStatus(null)} className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-ink-900 text-white transition-colors bg-transparent border-2 border-transparent hover:border-white cursor-pointer font-bold">
+                ×
               </button>
             </div>
           ) : (
-            <div className="bg-white border-3 border-ink-900 rounded-2xl px-5 py-3.5 shadow-[4px_4px_0px_0px_#1A1A1A] flex items-center justify-between">
+            <div className="bg-ink-900 border-4 border-ink-900 rounded-2xl px-5 py-3.5 shadow-[4px_4px_0px_0px_#111] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-accent-500 flex items-center justify-center shrink-0">
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                </div>
-                <span className="text-sm font-semibold text-ink-800">Something went wrong — please try again</span>
+                <AlertCircle className="w-6 h-6 text-white" strokeWidth={3} />
+                <span className="text-sm font-bold text-white uppercase tracking-wide">Scan failed.</span>
               </div>
-              <button onClick={() => setScanStatus(null)} className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-ink-100 text-ink-400 hover:text-ink-900 transition-colors bg-transparent border-none cursor-pointer">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <button onClick={() => setScanStatus(null)} className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-white hover:text-ink-900 text-white transition-colors bg-transparent border-2 border-transparent hover:border-ink-900 cursor-pointer font-bold">
+                ×
               </button>
             </div>
           )}
@@ -295,10 +293,11 @@ import EventCard from '../components/EventCard';
 function EmptyFeed({ hasChannels, onClearFilters }) {
   if (hasChannels) {
     return (
-      <div className="bg-[#FCF8EC] border-[4px] border-ink-900 border-dashed rounded-3xl p-16 text-center shadow-[8px_8px_0px_0px_#1A1A1A]">
-        <h3 className="font-bold text-2xl mb-2">No matching events</h3>
+      <div className="bg-white border-4 border-ink-900 border-dashed rounded-3xl p-16 text-center shadow-[8px_8px_0px_0px_#111]">
+        <Activity className="w-12 h-12 text-ink-300 mx-auto mb-4" strokeWidth={2} />
+        <h3 className="font-bold text-2xl mb-2 text-ink-900 uppercase tracking-tight">No matching events</h3>
         <p className="text-ink-600 mb-6 font-medium">Nothing in your feed matches the current filters.</p>
-        <button onClick={onClearFilters} className="px-6 py-2 bg-[#FCF8EC] border-[3px] border-ink-900 rounded-full font-bold text-ink-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform">
+        <button onClick={onClearFilters} className="px-6 py-2 bg-white hover:bg-ink-900 hover:text-white border-[3px] border-ink-900 rounded-full font-bold text-ink-900 shadow-[4px_4px_0px_0px_#111] hover:shadow-[2px_2px_0px_0px_#111] hover:translate-y-[2px] transition-all">
           Clear filters
         </button>
       </div>
@@ -306,14 +305,15 @@ function EmptyFeed({ hasChannels, onClearFilters }) {
   }
 
   return (
-    <div className="bg-[#FCF8EC] border-[4px] border-ink-900 border-dashed rounded-3xl p-16 text-center shadow-[8px_8px_0px_0px_#1A1A1A]">
-      <div className="text-5xl mb-4">👻</div>
-      <h3 className="font-black text-2xl mb-2">Nothing yet</h3>
-      <p className="text-ink-600 font-medium mb-6">
-        Add a channel and we'll surface changes as they happen.
+    <div className="bg-white border-4 border-ink-900 border-dashed rounded-3xl p-16 text-center shadow-[8px_8px_0px_0px_#111]">
+      <Activity className="w-12 h-12 text-ink-300 mx-auto mb-4" strokeWidth={2} />
+      <h3 className="font-black text-2xl mb-2 text-ink-900 uppercase tracking-tight">Feed is empty</h3>
+      <p className="text-ink-600 font-medium mb-6 max-w-sm mx-auto">
+        Add your first channel and we will start surfacing changes automatically.
       </p>
-      <Link to="/channels/add" className="inline-block px-6 py-2 bg-[#FF5A4F] border-[3px] border-ink-900 rounded-full font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform no-underline">
-        + Add a channel
+      <Link to="/channels/add" className="inline-flex items-center gap-2 px-6 py-2 bg-primary border-[3px] border-ink-900 rounded-full font-bold text-white shadow-[4px_4px_0px_0px_#111] hover:shadow-[2px_2px_0px_0px_#111] hover:translate-y-[2px] transition-all no-underline">
+        <PlusCircle className="w-5 h-5" strokeWidth={3} />
+        Add a channel
       </Link>
     </div>
   );

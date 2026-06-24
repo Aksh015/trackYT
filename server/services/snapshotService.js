@@ -2,6 +2,7 @@ const Snapshot = require('../models/Snapshot');
 const { EVENT_TYPES } = require('../utils/constants');
 const youtubeService = require('./youtubeService');
 const logger = require('../utils/logger');
+const { hashThumbnailsBatch } = require('../utils/thumbnailHash');
 
 /**
  * Take a fresh snapshot of a channel's current state.
@@ -12,19 +13,30 @@ const takeSnapshot = async (channel) => {
   const channelInfo = await youtubeService.getChannelInfo(channel.channelId);
 
   // Fetch latest videos via RSS (free)
-  const rssVideos = await youtubeService.getLatestVideosRSS(channel.channelId);
+  let rssVideos = await youtubeService.getLatestVideosRSS(channel.channelId);
 
-  // Build video details map
+  // If RSS is empty/broken, fallback to API
+  if (rssVideos.length === 0) {
+    logger.info(`RSS returned 0 videos for ${channel.channelId}. Falling back to API...`);
+    rssVideos = await youtubeService.getRecentVideosAPI(channel.channelId, 30);
+  }
+
+  // Get previous snapshot to carry over tracked videos
+  const previousSnapshot = await Snapshot.findOne({ channelId: channel.channelId }).sort({ takenAt: -1 }).lean();
+  const prevVideoIds = previousSnapshot?.recentVideoIds || [];
+  const rssVideoIds = rssVideos.map((v) => v.videoId).filter(Boolean);
+
+  // Combine newly discovered videos with previously tracked videos, keeping up to 50
+  const allVideoIds = Array.from(new Set([...rssVideoIds, ...prevVideoIds])).slice(0, 50);
+
   const videoDetails = {};
   const recentVideoIds = [];
 
-  // If we have RSS videos, also get detailed info from API for accurate titles/thumbnails
-  if (rssVideos.length > 0) {
-    const videoIds = rssVideos.map((v) => v.videoId).filter(Boolean);
-    recentVideoIds.push(...videoIds);
+  if (allVideoIds.length > 0) {
+    recentVideoIds.push(...allVideoIds);
 
     // Batch fetch from API (1 unit for up to 50 IDs)
-    const detailedVideos = await youtubeService.getVideoDetails(videoIds);
+    const detailedVideos = await youtubeService.getVideoDetails(allVideoIds);
 
     for (const video of detailedVideos) {
       videoDetails[video.videoId] = {
@@ -39,21 +51,35 @@ const takeSnapshot = async (channel) => {
 
     // Fallback: fill in any missing from RSS data
     for (const rssVideo of rssVideos) {
-      if (!videoDetails[rssVideo.videoId]) {
+      if (recentVideoIds.includes(rssVideo.videoId) && !videoDetails[rssVideo.videoId]) {
         videoDetails[rssVideo.videoId] = {
           title: rssVideo.title,
           thumbnailURL: rssVideo.thumbnailURL,
         };
       }
     }
+
+    // Hash all thumbnail images to detect content-level changes
+    // (YouTube reuses the same URL when a creator swaps a thumbnail)
+    try {
+      const hashes = await hashThumbnailsBatch(videoDetails);
+      for (const [videoId, hash] of Object.entries(hashes)) {
+        if (videoDetails[videoId] && hash) {
+          videoDetails[videoId].thumbnailHash = hash;
+        }
+      }
+    } catch (err) {
+      logger.warn(`Thumbnail hashing failed, skipping: ${err.message}`);
+    }
   }
 
-  const latestVideo = rssVideos[0]
+  const latestVideoId = rssVideoIds[0] || prevVideoIds[0] || '';
+  const latestVideo = latestVideoId
     ? {
-        videoId: rssVideos[0].videoId,
-        title: videoDetails[rssVideos[0].videoId]?.title || rssVideos[0].title,
-        thumbnailURL: videoDetails[rssVideos[0].videoId]?.thumbnailURL || rssVideos[0].thumbnailURL,
-        publishedAt: rssVideos[0].publishedAt ? new Date(rssVideos[0].publishedAt) : null,
+        videoId: latestVideoId,
+        title: videoDetails[latestVideoId]?.title || '',
+        thumbnailURL: videoDetails[latestVideoId]?.thumbnailURL || '',
+        publishedAt: videoDetails[latestVideoId]?.publishedAt || null,
       }
     : { videoId: '', title: '', thumbnailURL: '', publishedAt: null };
 
@@ -132,10 +158,20 @@ const diffSnapshots = (previous, current) => {
         });
       }
 
-      // 3. Detect thumbnail changes
+      // 3. Detect thumbnail changes via content hash
+      // URL comparison is unreliable — YouTube reuses the same URL on thumbnail swaps
+      const oldHash = prevDetails[videoId].thumbnailHash;
+      const newHash = currDetails[videoId].thumbnailHash;
       const oldThumb = prevDetails[videoId].thumbnailURL;
       const newThumb = currDetails[videoId].thumbnailURL;
-      if (oldThumb && newThumb && oldThumb !== newThumb) {
+
+      const thumbnailChanged =
+        // Primary: compare content hashes (reliable)
+        (oldHash && newHash && oldHash !== newHash) ||
+        // Fallback: if no hashes, compare URLs (may catch resolution changes)
+        (!oldHash && !newHash && oldThumb && newThumb && oldThumb !== newThumb);
+
+      if (thumbnailChanged) {
         changes.push({
           eventType: EVENT_TYPES.THUMBNAIL_CHANGED,
           oldValue: { thumbnailURL: oldThumb },
