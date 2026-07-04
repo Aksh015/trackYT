@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const redisClient = require('../config/redis');
 
 /**
  * JWT authentication middleware.
  * Extracts token from Authorization header, verifies it,
- * and attaches the user document to req.user.
+ * checks the Redis blacklist, and attaches the user to req.user.
  */
 const authMiddleware = async (req, res, next) => {
   try {
@@ -20,6 +21,15 @@ const authMiddleware = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Check if token has been blacklisted (logged out)
+    const isBlacklisted = await redisClient.get(`blacklist:${token}`);
+    if (isBlacklisted) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token has been invalidated. Please login again.',
+      });
+    }
 
     const user = await User.findById(decoded.userId).select('-passwordHash');
     if (!user) {

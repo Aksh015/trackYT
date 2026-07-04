@@ -52,10 +52,17 @@ export function AuthProvider({ children }) {
     return userData;
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('trackyt_token');
-    localStorage.removeItem('trackyt_user');
-    setUser(null);
+  const logout = useCallback(async () => {
+    try {
+      // Blacklist the token on the server so it can't be reused
+      await authService.logout();
+    } catch {
+      // Even if the API call fails, clear local state
+    } finally {
+      localStorage.removeItem('trackyt_token');
+      localStorage.removeItem('trackyt_user');
+      setUser(null);
+    }
   }, []);
 
   const updateUser = useCallback((newUser) => {

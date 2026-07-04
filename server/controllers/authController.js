@@ -276,4 +276,96 @@ const getProfile = async (req, res) => {
   });
 };
 
-module.exports = { register, login, getProfile, verifyOtp, resendOtp };
+const cloudinary = require('../config/cloudinary');
+
+/**
+ * PUT /api/auth/profile
+ * Update user profile (username, avatar)
+ */
+const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user._id; // from auth middleware
+    const { username } = req.body;
+    const file = req.file;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Validate and update username
+    if (username && username !== user.username) {
+      if (!isValidUsername(username)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username must be 3-30 characters (letters, numbers, underscores only).',
+        });
+      }
+      // Check if username is taken
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(409).json({ success: false, message: 'Username is already taken.' });
+      }
+      user.username = username;
+    }
+
+    // Upload new avatar if file provided
+    if (file) {
+      const uploadStream = () => {
+        return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: 'trackyt_avatars' },
+            (error, result) => {
+              if (result) resolve(result);
+              else reject(error);
+            }
+          );
+          stream.end(file.buffer);
+        });
+      };
+
+      const result = await uploadStream();
+      user.profilePicURL = result.secure_url;
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully.',
+      data: { user: user.toJSON() },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/auth/logout
+ * Blacklist the current JWT in Redis so it can't be reused.
+ */
+const logout = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (token) {
+      // Decode without verifying to get the expiry time
+      const decoded = require('jsonwebtoken').decode(token);
+      if (decoded && decoded.exp) {
+        // TTL = seconds remaining until token naturally expires
+        const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+        if (ttl > 0) {
+          // Store in Redis blacklist until the token would have expired anyway
+          await redisClient.setEx(`blacklist:${token}`, ttl, '1');
+        }
+      }
+    }
+
+    res.json({ success: true, message: 'Logged out successfully.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { register, login, getProfile, verifyOtp, resendOtp, updateProfile, logout };
