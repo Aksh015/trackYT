@@ -25,6 +25,19 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Password is required'],
       minlength: 6,
     },
+    profilePicURL: {
+      type: String,
+      default: '',
+    },
+    planType: {
+      type: String,
+      enum: ['FREE', 'PREMIUM'],
+      default: 'FREE',
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true, // adds createdAt and updatedAt

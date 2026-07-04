@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { isValidEmail, isValidPassword, isValidUsername } = require('../utils/validators');
+const redisClient = require('../config/redis');
+const emailService = require('../utils/emailService');
+const logger = require('../utils/logger');
 
 /**
  * Generate a JWT token for a user.
@@ -12,8 +15,15 @@ const generateToken = (userId) => {
 };
 
 /**
+ * Generate a 6-digit OTP
+ */
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+/**
  * POST /api/auth/register
- * Create a new user account.
+ * Create a new user account and send OTP.
  */
 const register = async (req, res, next) => {
   try {
@@ -47,34 +57,153 @@ const register = async (req, res, next) => {
       });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({
+    let user = await User.findOne({
       $or: [{ email }, { username }],
     });
 
-    if (existingUser) {
-      const field = existingUser.email === email ? 'email' : 'username';
-      return res.status(409).json({
-        success: false,
-        message: `A user with that ${field} already exists.`,
+    if (user) {
+      if (user.isEmailVerified) {
+        const field = user.email === email ? 'email' : 'username';
+        return res.status(409).json({
+          success: false,
+          message: `A user with that ${field} already exists.`,
+        });
+      } else {
+        // User exists but hasn't verified their email.
+        // We will update their password (in case they typed a new one) and resend the OTP.
+        user.passwordHash = password; // pre-save hook will hash this
+        await user.save();
+      }
+    } else {
+      user = await User.create({
+        username,
+        email,
+        passwordHash: password, // pre-save hook will hash this
+        isEmailVerified: false,
       });
     }
 
-    const user = await User.create({
-      username,
-      email,
-      passwordHash: password, // pre-save hook will hash this
-    });
+    // Generate OTP and save to Redis with 4-minute TTL
+    const otp = generateOTP();
+    await redisClient.setEx(`otp:${user._id}`, 240, otp);
+    await redisClient.setEx(`otp_attempts:${user._id}`, 240, '0');
 
-    const token = generateToken(user._id);
+    // Send the email
+    await emailService.sendOTP(user.email, otp);
 
     res.status(201).json({
       success: true,
-      message: 'Account created successfully.',
+      message: 'Account created successfully. Please verify your email.',
+      data: {
+        userId: user._id,
+        email: user.email,
+        requiresVerification: true,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/auth/verify-otp
+ * Verify the OTP sent to email
+ */
+const verifyOtp = async (req, res, next) => {
+  try {
+    const { userId, otp } = req.body;
+
+    if (!userId || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId and otp are required.',
+      });
+    }
+
+    // Check attempts
+    const attemptsStr = await redisClient.get(`otp_attempts:${userId}`);
+    const attempts = parseInt(attemptsStr || '0', 10);
+
+    if (attempts >= 4) {
+      await redisClient.del(`otp:${userId}`);
+      await redisClient.del(`otp_attempts:${userId}`);
+      return res.status(429).json({
+        success: false,
+        message: 'Too many failed attempts. OTP has been invalidated. Please request a new one.',
+      });
+    }
+
+    // Check OTP
+    const storedOtp = await redisClient.get(`otp:${userId}`);
+    if (!storedOtp) {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP is invalid or has expired.',
+      });
+    }
+
+    if (storedOtp !== otp) {
+      await redisClient.incr(`otp_attempts:${userId}`);
+      return res.status(400).json({
+        success: false,
+        message: 'Incorrect OTP. Please try again.',
+      });
+    }
+
+    // OTP is valid!
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.isEmailVerified = true;
+    await user.save();
+
+    // Clean up Redis
+    await redisClient.del(`otp:${userId}`);
+    await redisClient.del(`otp_attempts:${userId}`);
+
+    const token = generateToken(user._id);
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully.',
       data: {
         user: user.toJSON(),
         token,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/auth/resend-otp
+ * Resend OTP to the user's email
+ */
+const resendOtp = async (req, res, next) => {
+  try {
+    const { userId } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({ success: false, message: 'Email is already verified.' });
+    }
+
+    const otp = generateOTP();
+    await redisClient.setEx(`otp:${user._id}`, 240, otp);
+    await redisClient.setEx(`otp_attempts:${user._id}`, 240, '0');
+
+    await emailService.sendOTP(user.email, otp);
+
+    res.json({
+      success: true,
+      message: 'A new OTP has been sent to your email.',
     });
   } catch (error) {
     next(error);
@@ -112,6 +241,15 @@ const login = async (req, res, next) => {
       });
     }
 
+    if (!user.isEmailVerified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Please verify your email address before logging in.',
+        requiresVerification: true,
+        userId: user._id,
+      });
+    }
+
     const token = generateToken(user._id);
 
     res.json({
@@ -138,4 +276,4 @@ const getProfile = async (req, res) => {
   });
 };
 
-module.exports = { register, login, getProfile };
+module.exports = { register, login, getProfile, verifyOtp, resendOtp };

@@ -22,6 +22,18 @@ const addChannel = async (req, res, next) => {
       });
     }
 
+    // Enforce FREE plan channel limit
+    const isPro = req.user.planType?.toUpperCase() === 'PREMIUM';
+    if (!isPro) {
+      const currentCount = await Channel.countDocuments({ userId: req.user._id });
+      if (currentCount >= 3) {
+        return res.status(403).json({
+          success: false,
+          message: 'Free plan limit reached (3 channels). Please upgrade to add more channels.',
+        });
+      }
+    }
+
     // Parse the YouTube URL
     const parsed = parseChannelURL(url);
     if (!parsed) {
@@ -72,16 +84,30 @@ const addChannel = async (req, res, next) => {
 
     // Take initial snapshot (establishes baseline for future diffs)
     try {
-      await snapshotService.takeSnapshot(channel);
+      const currentSnapshot = await snapshotService.takeSnapshot(channel);
       logger.info(`Initial snapshot taken for ${channel.channelName}`);
 
-      // Backfill recent videos from the last 2 days (up to 5 max)
-      const apiVideos = (await youtubeService.getRecentVideosAPI(channel.channelId, 2)).slice(0, 5);
-      
-      const twoDaysAgo = new Date();
-      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+      // Backfill recent videos from the snapshot (published in the last 3 days)
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
-      const recentVideos = apiVideos.filter(v => new Date(v.publishedAt) >= twoDaysAgo);
+      const recentVideos = [];
+      if (currentSnapshot && currentSnapshot.videoDetails) {
+        // Handle both Map (if using mongoose Map) and plain object
+        const detailsObj = currentSnapshot.videoDetails instanceof Map 
+          ? Object.fromEntries(currentSnapshot.videoDetails) 
+          : currentSnapshot.videoDetails;
+
+        for (const videoId of currentSnapshot.recentVideoIds || []) {
+          const details = detailsObj[videoId];
+          if (details && details.publishedAt && new Date(details.publishedAt) >= threeDaysAgo) {
+            recentVideos.push({
+              videoId,
+              ...details
+            });
+          }
+        }
+      }
 
       if (recentVideos.length > 0) {
         // Use eventService.createEvent instead of Event.insertMany

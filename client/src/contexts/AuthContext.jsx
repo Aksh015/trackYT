@@ -25,6 +25,12 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const response = await authService.login({ email, password });
+    
+    // If login requires verification
+    if (response.data.requiresVerification) {
+      return response.data; // Return the metadata so UI can switch to OTP screen
+    }
+
     const { user: userData, token } = response.data.data;
     localStorage.setItem('trackyt_token', token);
     localStorage.setItem('trackyt_user', JSON.stringify(userData));
@@ -34,6 +40,11 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async (username, email, password) => {
     const response = await authService.register({ username, email, password });
+    return response.data.data; // Contains userId, email, requiresVerification: true
+  }, []);
+
+  const verifyOtp = useCallback(async (userId, otp) => {
+    const response = await authService.verifyOtp({ userId, otp });
     const { user: userData, token } = response.data.data;
     localStorage.setItem('trackyt_token', token);
     localStorage.setItem('trackyt_user', JSON.stringify(userData));
@@ -47,13 +58,20 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  const updateUser = useCallback((newUser) => {
+    localStorage.setItem('trackyt_user', JSON.stringify(newUser));
+    setUser(newUser);
+  }, []);
+
   const value = {
     user,
     loading,
     isAuthenticated: !!user,
     login,
     register,
+    verifyOtp,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

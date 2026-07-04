@@ -121,17 +121,33 @@ const diffSnapshots = (previous, current) => {
     const details = current.videoDetails?.get?.(videoId)
       || current.videoDetails?.[videoId]
       || {};
-    changes.push({
-      eventType: EVENT_TYPES.NEW_VIDEO,
-      oldValue: null,
-      newValue: {
-        videoId,
-        title: details.title || '',
-        thumbnailURL: details.thumbnailURL || '',
-        publishedAt: details.publishedAt || null,
-      },
-      metadata: { videoId, publishedAt: details.publishedAt || null },
-    });
+    
+    // BUG FIX: Prevent old videos from triggering NEW_VIDEO events when they
+    // cycle into the snapshot (e.g. due to RSS vs API pagination differences).
+    let isActuallyNew = true;
+    if (details.publishedAt) {
+      const publishedDate = new Date(details.publishedAt);
+      const daysSincePublish = (Date.now() - publishedDate.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSincePublish > 3) {
+        isActuallyNew = false;
+      }
+    }
+
+    if (isActuallyNew) {
+      changes.push({
+        eventType: EVENT_TYPES.NEW_VIDEO,
+        oldValue: null,
+        newValue: {
+          videoId,
+          title: details.title || '',
+          thumbnailURL: details.thumbnailURL || '',
+          publishedAt: details.publishedAt || null,
+        },
+        metadata: { videoId, publishedAt: details.publishedAt || null },
+      });
+    } else {
+      logger.debug(`Skipping NEW_VIDEO event for ${videoId} because it was published > 3 days ago.`);
+    }
   }
 
   // 2. Detect title changes on existing videos

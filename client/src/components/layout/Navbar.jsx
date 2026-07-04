@@ -9,6 +9,7 @@ export default function Navbar() {
   const navLinks = [
     { path: '/dashboard', label: 'Feed' },
     { path: '/channels', label: 'Channels' },
+    { path: '/billing', label: 'Billing' },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -48,8 +49,8 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <>
-                <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full border border-emerald-500 text-emerald-500 text-xs font-bold uppercase tracking-wider">
-                  Free
+                <span className={`hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wider ${user?.planType?.toUpperCase() === 'PREMIUM' ? 'border-amber-500 text-amber-500' : 'border-emerald-500 text-emerald-500'}`}>
+                  {user?.planType?.toUpperCase() === 'PREMIUM' ? 'Pro' : 'Free'}
                 </span>
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-ink-900 flex items-center justify-center text-white text-sm font-bold">

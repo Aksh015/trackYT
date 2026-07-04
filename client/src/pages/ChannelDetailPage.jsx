@@ -12,6 +12,7 @@ export default function ChannelDetailPage() {
   const [activeTab, setActiveTab] = useState('events');
   const [loading, setLoading] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
+  const [upgradeRequired, setUpgradeRequired] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,8 +37,13 @@ export default function ChannelDetailPage() {
     try {
       const res = await analyticsService.getAISummary(channel.channelId, refresh);
       setAiReport(res.data.data.report);
+      setUpgradeRequired(false);
     } catch (err) {
-      console.error('Failed to fetch AI summary:', err);
+      if (err.response?.status === 403) {
+        setUpgradeRequired(true);
+      } else {
+        console.error('Failed to fetch AI summary:', err);
+      }
     } finally {
       setAiLoading(false);
     }
@@ -189,6 +195,22 @@ export default function ChannelDetailPage() {
               <div className="skeleton h-4 w-full" />
               <div className="skeleton h-4 w-5/6" />
               <div className="skeleton h-4 w-4/6" />
+            </div>
+          ) : upgradeRequired ? (
+            <div className="p-8 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl text-center">
+              <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-inner">
+                ✨
+              </div>
+              <h4 className="text-xl font-bold mb-2 text-indigo-900">Upgrade to Premium</h4>
+              <p className="text-indigo-700 mb-5 text-sm">
+                Free users can only generate 1 fresh AI report per month. Upgrade to Premium for unlimited on-demand AI reports and insights!
+              </p>
+              <button 
+                onClick={() => setUpgradeRequired(false)}
+                className="btn bg-indigo-600 text-white hover:bg-indigo-700 border-none shadow-sm"
+              >
+                Close
+              </button>
             </div>
           ) : aiReport ? (
             <div>

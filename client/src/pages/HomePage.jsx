@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Eye, Zap, Video, PenTool, Bot, Image as ImageIcon, Tag, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import TrackYTLogo from '../components/TrackYTLogo';
+import PricingCards from '../components/PricingCards';
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -18,7 +19,7 @@ export default function HomePage() {
 
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border-2 border-ink-900 bg-white text-sm font-semibold mb-8">
             <Eye className="w-4 h-4 text-primary" strokeWidth={3} />
-            <span>100% Free • No Paid APIs</span>
+            <span>Freemium • No Paid APIs</span>
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-ink-900 mb-6 leading-tight">
@@ -37,7 +38,7 @@ export default function HomePage() {
               className="btn btn-primary text-base px-8 py-3 no-underline"
             >
               <Zap className="w-5 h-5" strokeWidth={3} />
-              Start Tracking Free
+              Start for Free
             </Link>
             <Link
               to={isAuthenticated ? '/dashboard' : '/login'}
@@ -94,10 +95,20 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Pricing */}
+        <div className="mt-24 mb-12 relative">
+          <div className="absolute inset-0 bg-cream-100 transform -skew-y-2 z-0 scale-110"></div>
+          <div className="relative z-10 py-12">
+            <h2 className="text-3xl sm:text-4xl font-black text-center mb-4 text-ink-900">Simple, transparent pricing</h2>
+            <p className="text-center text-ink-600 font-medium mb-12 max-w-xl mx-auto">Start for free, upgrade when you need more power.</p>
+            <PricingCards isLoggedIn={isAuthenticated} />
+          </div>
+        </div>
+
         {/* Bottom CTA */}
         <div className="mt-20 border-card shadow-[8px_8px_0px_0px_#111] p-10 text-center bg-white">
           <h2 className="text-2xl font-bold mb-3">Ready to start monitoring?</h2>
-          <p className="text-ink-500 mb-6 font-medium">No credit card. No paid APIs. Free forever.</p>
+          <p className="text-ink-500 mb-6 font-medium">No credit card required. Start for free today.</p>
           <Link
             to={isAuthenticated ? '/dashboard' : '/signup'}
             className="btn btn-primary text-base px-8 py-3 no-underline"

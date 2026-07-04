@@ -166,6 +166,22 @@ const getAISummary = async (req, res, next) => {
       }
     }
 
+    // Enforce FREE plan AI Report generation limit
+    const isPro = req.user.planType?.toUpperCase() === 'PREMIUM';
+    if (!isPro && refresh === 'true') {
+      const AIReport = require('../models/AIReport');
+      const lastReport = await AIReport.findOne({ userId: req.user._id }).sort({ generatedAt: -1 });
+      if (lastReport) {
+        const daysSinceLastReport = (Date.now() - new Date(lastReport.generatedAt)) / (1000 * 60 * 60 * 24);
+        if (daysSinceLastReport < 30) {
+          return res.status(403).json({
+            success: false,
+            message: 'Free users can only generate 1 new AI report per month. Please upgrade to Premium.',
+          });
+        }
+      }
+    }
+
     // Generate fresh summary
     const report = await aiService.generateSummary(channelId, req.user._id, channel.channelName);
 

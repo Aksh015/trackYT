@@ -14,6 +14,8 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import TimelinePage from './pages/TimelinePage';
 import SettingsPage from './pages/SettingsPage';
 import VideoDetailPage from './pages/VideoDetailPage';
+import BillingPage from './pages/BillingPage';
+import MockCheckoutPage from './pages/MockCheckoutPage';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -130,6 +132,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Layout><SettingsPage /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/billing"
+        element={
+          <ProtectedRoute>
+            <Layout><BillingPage /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mock-checkout"
+        element={
+          <ProtectedRoute>
+            <MockCheckoutPage />
           </ProtectedRoute>
         }
       />

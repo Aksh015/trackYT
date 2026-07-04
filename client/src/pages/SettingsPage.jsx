@@ -52,7 +52,7 @@ export default function SettingsPage() {
             </div>
             <div className="p-3 bg-cream-50 rounded-lg">
               <p className="font-semibold text-ink-900">Cost</p>
-              <p className="text-xs text-ink-400">100% Free Forever</p>
+              <p className="text-xs text-ink-400">Free & Pro plans</p>
             </div>
           </div>
         </div>

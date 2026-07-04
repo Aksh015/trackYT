@@ -13,6 +13,8 @@ const authRoutes = require('./routes/authRoutes');
 const channelRoutes = require('./routes/channelRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const billingRoutes = require('./routes/billingRoutes');
+const { handleWebhook } = require('./controllers/billingController');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +28,9 @@ app.use(cors({
   credentials: true,
 }));
 
+// Stripe webhook must use raw body parsing
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -37,6 +42,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/channels', channelRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/billing', billingRoutes);
 
 // Health check endpoint (useful for UptimeRobot / Render)
 app.get('/api/health', (req, res) => {

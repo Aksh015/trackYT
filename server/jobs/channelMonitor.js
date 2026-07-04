@@ -9,12 +9,21 @@ const logger = require('../utils/logger');
  * For each channel: take snapshot → diff with previous → create events.
  * Channels are processed sequentially to avoid API rate limits.
  */
-const monitorAllChannels = async () => {
-  logger.info('🔄 Starting channel monitoring job...');
+const monitorAllChannels = async (planTypes = ['FREE', 'PREMIUM']) => {
+  logger.info(`🔄 Starting channel monitoring job for plans: ${planTypes.join(', ')}...`);
 
   try {
-    // Get all unique channels being tracked
-    const channels = await Channel.find({}).lean();
+    // Get all unique channels being tracked, filtered by user's planType
+    const allChannels = await Channel.find({}).populate({
+      path: 'userId',
+      select: 'planType',
+    }).lean();
+
+    const channels = allChannels.filter((c) => {
+      if (!c.userId) return false;
+      const plan = c.userId.planType || 'FREE';
+      return planTypes.includes(plan);
+    });
 
     if (channels.length === 0) {
       logger.info('No channels to monitor.');
