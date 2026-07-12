@@ -35,15 +35,37 @@ const createEvent = async ({ channelId, userId, eventType, oldValue, newValue, m
 
       // Look up the previously archived old thumbnail from Cloudinary
       if (videoId) {
+        // Try the most recent event first (THUMBNAIL_CHANGED or NEW_VIDEO)
         const previousEvent = await Event.findOne({
-          userId, // Ensure we only get this user's previous event
+          userId,
           'metadata.videoId': videoId,
           eventType: { $in: ['NEW_VIDEO', 'THUMBNAIL_CHANGED'] },
         }).sort({ detectedAt: -1 }).lean();
 
-        const previouslyArchivedUrl =
+        let previouslyArchivedUrl =
           previousEvent?.newValue?.archivedThumbnailURL ||
           previousEvent?.newValue?.thumbnailURL;
+
+        // Validate the URL is actually a Cloudinary archive (not a YouTube CDN URL
+        // that was incorrectly set by a previous bug). YouTube CDN URLs are useless
+        // here because they already serve the NEW image by the time we detect changes.
+        const isCloudinaryUrl = (url) => url && (
+          url.includes('cloudinary.com') || url.includes('res.cloudinary')
+        );
+
+        if (!isCloudinaryUrl(previouslyArchivedUrl)) {
+          // Fallback: search for ANY event for this video that has a valid
+          // Cloudinary archived URL (e.g., an older THUMBNAIL_CHANGED event)
+          const archivedEvent = await Event.findOne({
+            'metadata.videoId': videoId,
+            eventType: { $in: ['NEW_VIDEO', 'THUMBNAIL_CHANGED'] },
+            'newValue.archivedThumbnailURL': { $regex: /cloudinary/ },
+          }).sort({ detectedAt: -1 }).lean();
+
+          if (archivedEvent?.newValue?.archivedThumbnailURL) {
+            previouslyArchivedUrl = archivedEvent.newValue.archivedThumbnailURL;
+          }
+        }
 
         if (previouslyArchivedUrl) {
           oldValue = { ...oldValue, archivedThumbnailURL: previouslyArchivedUrl };

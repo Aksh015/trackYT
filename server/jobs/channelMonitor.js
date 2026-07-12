@@ -129,8 +129,10 @@ const monitorSingleChannel = async (channel) => {
     .lean();
 
   for (const change of changes) {
+    // Track the last created event so we can use its archived URLs below
+    let createdEvent = null;
     for (const tracker of trackingUsers) {
-      await eventService.createEvent({
+      createdEvent = await eventService.createEvent({
         channelId: channel.channelId,
         userId: tracker.userId,
         eventType: change.eventType,
@@ -150,7 +152,13 @@ const monitorSingleChannel = async (channel) => {
       logger.info(`Updated NEW_VIDEO events for video ${videoId} with new title: "${change.newValue.title}"`);
     }
     if (videoId && change.eventType === 'THUMBNAIL_CHANGED') {
-      const newThumbUrl = change.newValue?.archivedThumbnailURL || change.newValue?.thumbnailURL;
+      // Use the Cloudinary-archived URL from the created event, NOT from
+      // change.newValue (which only has the YouTube CDN URL that can't be
+      // trusted for archival — YouTube reuses the same URL when thumbnails swap).
+      const newThumbUrl =
+        createdEvent?.newValue?.archivedThumbnailURL ||
+        change.newValue?.archivedThumbnailURL ||
+        change.newValue?.thumbnailURL;
       if (newThumbUrl) {
         await Event.updateMany(
           { channelId: channel.channelId, eventType: 'NEW_VIDEO', 'metadata.videoId': videoId },
