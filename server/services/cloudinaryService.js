@@ -23,7 +23,13 @@ const uploadThumbnail = async (imageUrl, videoId) => {
   }
 
   try {
-    const result = await cloudinary.uploader.upload(imageUrl, {
+    // Append a timestamp to the URL to bust Cloudinary's remote URL cache.
+    // YouTube's CDN ignores query params, but Cloudinary treats it as a new URL.
+    const cacheBusterUrl = imageUrl.includes('?') 
+      ? `${imageUrl}&t=${Date.now()}` 
+      : `${imageUrl}?t=${Date.now()}`;
+
+    const result = await cloudinary.uploader.upload(cacheBusterUrl, {
       folder: 'trackyt/thumbnails',
       public_id: videoId || undefined,
       overwrite: true,

@@ -64,6 +64,8 @@ const createEvent = async ({ channelId, userId, eventType, oldValue, newValue, m
 
           if (archivedEvent?.newValue?.archivedThumbnailURL) {
             previouslyArchivedUrl = archivedEvent.newValue.archivedThumbnailURL;
+          } else {
+            previouslyArchivedUrl = null;
           }
         }
 
