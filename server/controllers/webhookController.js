@@ -6,6 +6,9 @@ const Channel = require('../models/Channel');
 
 const parseXML = promisify(parseString);
 
+// Simple in-memory lock to prevent concurrent processing of duplicate webhooks
+const activeMonitors = new Set();
+
 /**
  * GET /api/webhooks/youtube
  * Handles the WebSub intent verification challenge.
@@ -57,8 +60,18 @@ const handleNotification = async (req, res) => {
     // Lookup channel in DB
     const channel = await Channel.findOne({ channelId }).lean();
     if (channel) {
-      // Trigger the snapshot process instantly
-      await monitorSingleChannel(channel);
+      if (activeMonitors.has(channelId)) {
+        logger.debug(`Ignoring duplicate WebSub webhook for ${channelId} (already processing)`);
+        return;
+      }
+      
+      activeMonitors.add(channelId);
+      try {
+        // Trigger the snapshot process instantly
+        await monitorSingleChannel(channel);
+      } finally {
+        activeMonitors.delete(channelId);
+      }
     }
   } catch (error) {
     logger.error('Error handling WebSub notification:', error.message);

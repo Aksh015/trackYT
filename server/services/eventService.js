@@ -36,6 +36,7 @@ const createEvent = async ({ channelId, userId, eventType, oldValue, newValue, m
       // Look up the previously archived old thumbnail from Cloudinary
       if (videoId) {
         const previousEvent = await Event.findOne({
+          userId, // Ensure we only get this user's previous event
           'metadata.videoId': videoId,
           eventType: { $in: ['NEW_VIDEO', 'THUMBNAIL_CHANGED'] },
         }).sort({ detectedAt: -1 }).lean();
