@@ -10,8 +10,14 @@ const EVENT_TYPES = {
 // Cron schedule expression — every hour at minute 0
 const CRON_SCHEDULE_HOURLY = '0 * * * *';
 
+// Cron schedule expression — every 15 minutes
+const CRON_SCHEDULE_15MIN = '*/15 * * * *';
+
 // Cron schedule expression — every day at midnight
 const CRON_SCHEDULE_DAILY = '0 0 * * *';
+
+// Cron schedule expression — daily for WebSub renewals
+const CRON_SCHEDULE_WEBSUB_RENEW = '0 0 * * *';
 
 // YouTube RSS feed base URL
 const YT_RSS_BASE = 'https://www.youtube.com/feeds/videos.xml';
@@ -32,7 +38,9 @@ const YT_CHANNEL_ID_REGEX = /youtube\.com\/channel\/(UC[\w-]+)/;
 module.exports = {
   EVENT_TYPES,
   CRON_SCHEDULE_HOURLY,
+  CRON_SCHEDULE_15MIN,
   CRON_SCHEDULE_DAILY,
+  CRON_SCHEDULE_WEBSUB_RENEW,
   YT_RSS_BASE,
   YT_API_BASE,
   GEMINI_API_BASE,

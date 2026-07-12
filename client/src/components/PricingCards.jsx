@@ -69,7 +69,7 @@ export default function PricingCards({ currentPlan = null, isLoggedIn = false })
           </li>
           <li className="flex items-start gap-3">
             <span className="text-red-500 font-black">✓</span>
-            <span>Daily automated tracking</span>
+            <span><strong>Hourly</strong> automated tracking</span>
           </li>
           <li className="flex items-start gap-3">
             <span className="text-red-500 font-black">✓</span>
@@ -127,7 +127,7 @@ export default function PricingCards({ currentPlan = null, isLoggedIn = false })
           </li>
           <li className="flex items-start gap-3">
             <span className="text-red-500 font-black">✓</span>
-            <span><strong>Hourly</strong> automated tracking</span>
+            <span><strong>Instant Webhooks</strong> + 15-min sync</span>
           </li>
           <li className="flex items-start gap-3">
             <span className="text-red-500 font-black">✓</span>

@@ -14,6 +14,7 @@ const channelRoutes = require('./routes/channelRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const billingRoutes = require('./routes/billingRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
 const { handleWebhook } = require('./controllers/billingController');
 
 const app = express();
@@ -43,6 +44,12 @@ app.use('/api/channels', channelRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/webhooks', webhookRoutes);
+
+// Base route for home page to confirm server is running
+app.get('/', (req, res) => {
+  res.send('Server running');
+});
 
 // Health check endpoint (useful for UptimeRobot / Render)
 app.get('/api/health', (req, res) => {

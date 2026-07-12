@@ -135,6 +135,11 @@ const addChannel = async (req, res, next) => {
         logger.info(`Backfilled ${recentVideos.length} NEW_VIDEO events for ${channel.channelName} to Cloudinary`);
       }
 
+      if (isPro) {
+        youtubeService.subscribeToWebSub(channel.channelId).catch(err => {
+          logger.warn(`Initial WebSub sub failed for ${channel.channelName}: ${err.message}`);
+        });
+      }
     } catch (snapError) {
       logger.warn(`Initial snapshot failed for ${channel.channelName}:`, snapError.message);
       // Non-fatal: channel is still added, snapshot will be taken on next cron run

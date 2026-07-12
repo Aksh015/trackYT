@@ -190,10 +190,64 @@ const getVideoDetails = async (videoIds) => {
   }
 };
 
+/**
+ * Subscribe a channel to YouTube WebSub for instant notifications.
+ */
+const subscribeToWebSub = async (channelId) => {
+  if (!process.env.WEBSUB_CALLBACK_URL) {
+    logger.warn('WEBSUB_CALLBACK_URL not set. Skipping WebSub subscription.');
+    return;
+  }
+  const hubUrl = 'https://pubsubhubbub.appspot.com/subscribe';
+  const topicUrl = `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`;
+  const callbackUrl = `${process.env.WEBSUB_CALLBACK_URL}/api/webhooks/youtube`;
+
+  try {
+    const data = new URLSearchParams();
+    data.append('hub.callback', callbackUrl);
+    data.append('hub.topic', topicUrl);
+    data.append('hub.verify', 'async');
+    data.append('hub.mode', 'subscribe');
+    // lease for 5 days
+    data.append('hub.lease_seconds', '432000'); 
+
+    await axios.post(hubUrl, data, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+    logger.info(`WebSub subscription request sent for channel ${channelId}`);
+  } catch (error) {
+    logger.error(`Failed to subscribe to WebSub for ${channelId}:`, error.message);
+  }
+};
+
+/**
+ * Renew subscriptions for all premium channels.
+ */
+const renewAllWebSubSubscriptions = async () => {
+  const Channel = require('../models/Channel');
+  const allChannels = await Channel.find({}).populate({
+    path: 'userId',
+    select: 'planType',
+  }).lean();
+
+  const premiumChannels = allChannels.filter((c) => {
+    return c.userId && c.userId.planType === 'PREMIUM';
+  });
+
+  logger.info(`Renewing WebSub for ${premiumChannels.length} premium channels...`);
+  for (const channel of premiumChannels) {
+    await subscribeToWebSub(channel.channelId);
+    // Add a small delay to avoid rate limiting the Hub
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+};
+
 module.exports = {
   resolveHandle,
   getChannelInfo,
   getLatestVideosRSS,
   getRecentVideosAPI,
   getVideoDetails,
+  subscribeToWebSub,
+  renewAllWebSubSubscriptions,
 };

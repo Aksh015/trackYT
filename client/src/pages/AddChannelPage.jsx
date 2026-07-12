@@ -68,7 +68,7 @@ export default function AddChannelPage() {
           </div>
           <h2 className="text-2xl font-black mb-2 text-ink-900">Upgrade to Premium</h2>
           <p className="text-ink-800 mb-6 text-sm font-medium">
-            You've reached the 3-channel limit on the Free plan. Upgrade to Premium to track unlimited channels, get hourly updates, and unlimited AI reports.
+            You've reached the 3-channel limit on the Free plan. Upgrade to Premium to track unlimited channels, get instant webhook updates, 15-minute full syncs, and unlimited AI reports.
           </p>
           <div className="flex gap-4 justify-center">
             <button 
