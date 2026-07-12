@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { eventService } from '../services/analyticsService';
 import channelService from '../services/channelService';
 import { timeAgo, eventTypeLabel, eventTypeBadgeClass, eventTypeIcon, truncate } from '../utils/formatters';
+import { useAuth } from '../contexts/AuthContext';
 
 const FILTER_KINDS = [
   { key: null, label: 'All changes' },
@@ -15,6 +16,8 @@ const FILTER_KINDS = [
 ];
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const isPremium = user?.planType?.toUpperCase() === 'PREMIUM';
   const [events, setEvents] = useState([]);
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -97,23 +100,25 @@ export default function DashboardPage() {
             New videos, title rewrites, thumbnail swaps, and channel rebrands across the channels you watch.
           </p>
         </div>
-        <button
-          onClick={handleRefresh}
-          disabled={scanning}
-          className={`btn btn-outline text-sm bg-white hover:bg-primary hover:text-white hover:border-primary ${scanning ? 'opacity-70 cursor-wait' : ''}`}
-        >
-          {scanning ? (
-            <>
-              <RefreshCw className="w-4 h-4 animate-spin" strokeWidth={3} />
-              Scanning...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="w-4 h-4" strokeWidth={3} />
-              Refresh feed
-            </>
-          )}
-        </button>
+        {isPremium && (
+          <button
+            onClick={handleRefresh}
+            disabled={scanning}
+            className={`btn btn-outline text-sm bg-white hover:bg-primary hover:text-white hover:border-primary ${scanning ? 'opacity-70 cursor-wait' : ''}`}
+          >
+            {scanning ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" strokeWidth={3} />
+                Scanning...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4" strokeWidth={3} />
+                Refresh feed
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Scan status toast */}

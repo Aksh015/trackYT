@@ -4,7 +4,7 @@ const { addChannel, getChannels, getChannelDetail, removeChannel } = require('..
 const { getVideoHistory } = require('../controllers/videoController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const { refreshLimiter } = require('../middlewares/rateLimiter');
-const { monitorAllChannels } = require('../jobs/channelMonitor');
+const { monitorUserChannels } = require('../jobs/channelMonitor');
 const logger = require('../utils/logger');
 
 // All channel routes require authentication
@@ -14,8 +14,12 @@ router.use(authMiddleware);
 // Must be before /:id so 'refresh' isn't treated as a channel ID
 router.post('/refresh', refreshLimiter, async (req, res) => {
   try {
+    if (req.user.planType !== 'PREMIUM') {
+      return res.status(403).json({ success: false, message: 'Premium required for manual refresh' });
+    }
+    
     logger.info(`Manual refresh triggered by user ${req.user._id}`);
-    await monitorAllChannels();
+    await monitorUserChannels(req.user._id);
     res.json({ success: true, status: 'scan_complete' });
   } catch (error) {
     logger.error('Manual refresh failed:', error.message);

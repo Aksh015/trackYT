@@ -60,6 +60,38 @@ const monitorAllChannels = async (planTypes = ['FREE', 'PREMIUM']) => {
 };
 
 /**
+ * Monitor channels for a specific user (used for manual refresh)
+ */
+const monitorUserChannels = async (userId) => {
+  logger.info(`🔄 Starting manual channel monitoring for user ${userId}...`);
+  try {
+    const channels = await Channel.find({ userId }).lean();
+    if (channels.length === 0) {
+      logger.info(`No channels to monitor for user ${userId}.`);
+      return;
+    }
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const channel of channels) {
+      try {
+        await monitorSingleChannel(channel);
+        successCount++;
+        await Channel.findByIdAndUpdate(channel._id, { lastCheckedAt: new Date() });
+        await delay(2000);
+      } catch (error) {
+        errorCount++;
+        logger.error(`Failed to monitor ${channel.channelName} for user ${userId}:`, error.message);
+      }
+    }
+    logger.info(`✅ Manual monitoring complete for user ${userId}: ${successCount} success, ${errorCount} errors`);
+  } catch (error) {
+    logger.error('User channel monitoring failed:', error.message);
+  }
+};
+
+/**
  * Monitor a single channel: snapshot → diff → events.
  */
 const monitorSingleChannel = async (channel) => {
@@ -132,4 +164,4 @@ const monitorSingleChannel = async (channel) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-module.exports = { monitorAllChannels, monitorSingleChannel };
+module.exports = { monitorAllChannels, monitorUserChannels, monitorSingleChannel };
